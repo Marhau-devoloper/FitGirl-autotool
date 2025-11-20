@@ -1,0 +1,145 @@
+
+
+import sys
+
+Gamename = sys.argv[1]
+FirstWord = sys.argv[2]
+
+print("GameName", Gamename)
+print("FirstWord:", FirstWord)
+def check_fodler():
+    import os 
+    import pathlib
+    pathsd = str(pathlib.Path().resolve()) + "/Downloads/"
+
+    if os.path.isdir(pathsd) == False:
+        os.makedirs(pathsd)
+        
+check_fodler()
+
+def get_game(query:str, keywords:list):
+    import requests
+    import re
+    url = "https://fitgirl-repacks.site/"  # site homepage
+    params = {"s": query}  # input name is 's'
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+
+    response = requests.get(url, params=params, headers=headers)
+
+    if response.status_code != 200:
+        print("Failed to fetch:", response.status_code)
+        quit()
+        return []
+
+    html = response.text
+
+    matches = re.findall(r'<a href="(.*?)".*?>(.*?)</a>', html, re.DOTALL)
+    matches = str(matches)
+    results = re.findall(r"https://fitgirl-repacks.site/.*?/",matches)
+    title = query
+    filtered = re.findall(rf"https://fitgirl-repacks.site/{keywords[0]}.*?/",matches)
+
+    filtered = list(dict.fromkeys(filtered))
+    
+        
+    print(filtered)
+    link = input("use number from 0 to chose link ")
+    link = filtered[int(link)]
+    return link
+
+def get_magnet(link:str):
+    import requests
+    import re
+    url = link  # site homepage
+    
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+
+    response = requests.get(url,headers=headers)
+
+    if response.status_code != 200:
+        print("Failed to fetch:", response.status_code)
+        return []
+
+    html = response.text
+
+    matches = re.findall(r'<a href="magnet:(.*?)">magnet</a>', html, re.DOTALL)
+    matches = str(matches[0]).replace("['","")
+    matches = str(matches).replace("']","")
+    matches = "magnet:" + matches
+    return matches
+
+
+
+
+def magnet_to_torrent(magnet, save_as):
+    import requests
+    import re
+    # extract infohash
+    import pathlib
+    import os
+    paths = str(pathlib.Path().resolve()) + "/Downloads/"
+    paths = paths + save_as
+
+    if os.path.isfile(paths) == True:
+        os.remove(paths)
+    
+
+
+    match = re.search(r"btih:([0-9A-Fa-f]{40}|[0-9A-Fa-f]{32})", magnet)
+    if not match:
+        raise ValueError("Invalid magnet link: cannot find infohash")
+
+    infohash = match.group(1)
+    url = f"https://itorrents.org/torrent/{infohash}.torrent"
+
+    print("Downloading:", url)
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/118.0.5993.90 Safari/537.36"
+    }
+
+    r = requests.get(url, headers=headers)
+    if r.status_code != 200:
+        raise Exception(f"Failed to download .torrent file, status code {r.status_code}")
+
+    with open(paths, "wb") as f:
+        f.write(r.content)
+
+    print("Saved:", save_as)
+    return save_as
+
+
+def download_magnet(magnet:str):
+
+    import subprocess
+    import pathlib
+    import os
+    paths = str(pathlib.Path().resolve()) + "/Downloads/1.torrent"
+    paths1 = str(pathlib.Path().resolve()) + "/Downloads/"
+    torrent_file = paths
+    save_path = paths1
+
+    subprocess.run([
+        "aria2c",
+        torrent_file,
+        "-d", save_path,
+        "--seed-time=0",
+        "--enable-dht=true"
+    ])
+
+
+download_magnet(magnet_to_torrent(get_magnet(get_game(Gamename, FirstWord)),"1.torrent"))
+
+
+   
+
+
+
+
+
