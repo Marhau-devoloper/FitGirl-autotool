@@ -53,12 +53,24 @@ def get_magnet(link:str):
     import requests
     import re
     url = link  # site homepage
-    
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
+    import time
+    #headers = {
+    #    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    # }
+    #print("making request")
+    #time.sleep(5)
+    #response = requests.get(url,headers=headers)
 
-    response = requests.get(url,headers=headers)
+
+    headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Connection": "keep-alive"
+    }
+    response = requests.get(url, headers=headers, timeout=15)
+
+
 
     if response.status_code != 200:
         print("Failed to fetch:", response.status_code)
@@ -124,14 +136,15 @@ def download_magnet(magnet:str):
     paths1 = str(pathlib.Path().resolve()) + "/Downloads/"
     torrent_file = paths
     save_path = paths1
-
     subprocess.run([
         "aria2c",
         torrent_file,
-        "-d", save_path,
-        "--seed-time=0",
-        "--enable-dht=true"
-    ])
+        "-d",save_path,
+        "--seed-time=0",                  # stop seeding instantly
+        "--enable-dht=true",
+        "--max-overall-download-limit=0",   # unlimited speed
+
+    ], check=True)
 
 
 download_magnet(magnet_to_torrent(get_magnet(get_game(Gamename, FirstWord)),"1.torrent"))
