@@ -1,10 +1,12 @@
 
 
 import sys
-
-Gamename = sys.argv[1]
-FirstWord = sys.argv[2]
-
+try:
+    Gamename = sys.argv[1]
+    FirstWord = sys.argv[2]
+except:
+    print("pls enter name of game and first work from game name")
+    quit()
 print("GameName", Gamename)
 print("FirstWord:", FirstWord)
 def check_fodler():
@@ -20,21 +22,27 @@ check_fodler()
 def get_game(query:str, keywords:list):
     import requests
     import re
-    url = "https://fitgirl-repacks.site/"  # site homepage
-    params = {"s": query}  # input name is 's'
+    url = "https://fitgirl-repacks.site/"
+    params = {"s": query}
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
+    try:
+            
+        response = requests.get(url, params=params, headers=headers)
 
-    response = requests.get(url, params=params, headers=headers)
+        if response.status_code != 200:
+            print("Failed to fetch:", response.status_code)
+            quit()
 
-    if response.status_code != 200:
-        print("Failed to fetch:", response.status_code)
-        quit()
-        return []
+            return []
 
-    html = response.text
+        html = response.text
+    except requests.exceptions.ConnectionError:
+        import os
 
+        os.system("clear")
+        os.execv(sys.executable, ['python'] + sys.argv)
     matches = re.findall(r'<a href="(.*?)".*?>(.*?)</a>', html, re.DOTALL)
     matches = str(matches)
     results = re.findall(r"https://fitgirl-repacks.site/.*?/",matches)
@@ -42,24 +50,22 @@ def get_game(query:str, keywords:list):
     filtered = re.findall(rf"https://fitgirl-repacks.site/{keywords[0]}.*?/",matches)
 
     filtered = list(dict.fromkeys(filtered))
+    filteredsort = list(dict.fromkeys(filtered))
     
-        
-    print(filtered)
+    for number, letter in enumerate(filteredsort):
+            
+        print(number, letter)        
+    
     link = input("use number from 0 to chose link ")
     link = filtered[int(link)]
+
     return link
 
 def get_magnet(link:str):
     import requests
     import re
-    url = link  # site homepage
+    url = link  
     import time
-    #headers = {
-    #    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    # }
-    #print("making request")
-    #time.sleep(5)
-    #response = requests.get(url,headers=headers)
 
 
     headers = {
@@ -68,9 +74,15 @@ def get_magnet(link:str):
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Connection": "keep-alive"
     }
-    response = requests.get(url, headers=headers, timeout=15)
-
-
+    try:
+        response = requests.get(url, headers=headers, timeout=15)
+    except requests.exceptions.ConnectionError:
+        import os
+        import time 
+        print("server time ou trying again")
+        time.sleep(1)
+        os.system("clear")
+        os.execv(sys.executable, ['python'] + sys.argv)
 
     if response.status_code != 200:
         print("Failed to fetch:", response.status_code)
@@ -90,7 +102,6 @@ def get_magnet(link:str):
 def magnet_to_torrent(magnet, save_as):
     import requests
     import re
-    # extract infohash
     import pathlib
     import os
     paths = str(pathlib.Path().resolve()) + "/Downloads/"
