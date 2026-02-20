@@ -23,9 +23,7 @@ pip install requests
 
 <h3>How To Use ?</h3>
 
-python main.py "game name" "first word of name"
-
-no capitals
+python main.py "Name of The Game"
 
 
 
