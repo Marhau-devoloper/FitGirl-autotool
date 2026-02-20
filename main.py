@@ -12,10 +12,9 @@ import sys
 #get arguments full game name and First part of game name
 try:
     Gamename = sys.argv[1]
-    FirstWord = sys.argv[2]
 except:
-# if arguments is empty or something, We just give user a hit what is wrong and exit 
-    print("pls enter name of game and first work from game name")
+# if arguments is empty or something, We just give user a hint what is wrong and exit 
+    print("Pls Enter Name of the Game ")
     quit()
 
 
@@ -31,7 +30,7 @@ def check_folder():
         
 
 #get game link
-def get_game(query:str, keywords:list):
+def get_game(query:str):
     # Fit girl web site URL
     url = "https://fitgirl-repacks.site/"
     params = {"s": query}
@@ -62,14 +61,13 @@ def get_game(query:str, keywords:list):
     #find all links    
     matches = re.findall(r'<a href="(.*?)".*?>(.*?)</a>', html, re.DOTALL)
     matches = str(matches)
-    #make simple filtering to get only links with has https://fitgirl-repacks.site/. to ignore pictures and other not needed resources
-    results = re.findall(r"https://fitgirl-repacks.site/.*?/",matches)
+    #make simple filtering to get only links with has https://fitgirl-repacks.site/. to ignore pictures and other useless stuff
+    results = re.findall(rf"https://fitgirl-repacks.site/{query.replace(" ","-").lower()}.*?/",matches)
     title = query
     #make another filtering to show similar links to keyword
-    filtered = re.findall(rf"https://fitgirl-repacks.site/{keywords[0]}.*?/",matches)
+    
 
-    filtered = list(dict.fromkeys(filtered))
-    filteredsort = list(dict.fromkeys(filtered))
+    filtered = list(dict.fromkeys(results))
     #make link list more user friendly add number like:
                     ################
                     #    0 link    #
@@ -77,20 +75,20 @@ def get_game(query:str, keywords:list):
                     #    2 link    #
                     #    3 link    #
                     ################
-    for number, letter in enumerate(filteredsort):
+    for number, letter in enumerate(filtered):
         #print result    
         print(number, letter)        
     #get input with number was chosen
     #Also we check does user put something exempt number, if yes app restart with saving arguments
     try:
      
-        link = int(input("use number from 0 to chose link ",))
+        link = int(input("Use Numbers to Choose Link ",))
 
         link = filtered[link]
         return link
     except:
         #restart app with arguments saved
-        print(f"pls Write a number")
+        print(f"Pls Write a number")
         input("Press Enter to Restart: ")
         os.execv(sys.executable, ['python'] + sys.argv)
     
@@ -112,7 +110,7 @@ def get_magnet(url:str):
     except requests.exceptions.ConnectionError:
         
         import time 
-        print("server time out trying again")
+        print("Server Time Out, Pls wait 1 Sec and Try Again")
         time.sleep(1)
         os.system("clear")
         #restart app
@@ -143,6 +141,7 @@ def download_magnet(magnet:str):
     save_path = str(pathlib.Path().resolve()) + "/Downloads/"
     #run aria2c CLI to Download game from magnet
     os.system("clear")
+    print(magnet)
     subprocess.run([
         "aria2c",
         magnet,
@@ -150,12 +149,12 @@ def download_magnet(magnet:str):
         "--seed-time=0",                  # stop seeding instantly
         "--enable-dht=true",
         "--max-overall-download-limit=0",   # unlimited speed
-
+        "--bt-max-peers 100"
     ], check=True)
 #check does folder is exists 
 check_folder()
 # connect all together 
-download_magnet((get_magnet(get_game(Gamename, FirstWord)),"1.torrent"))
+download_magnet((get_magnet(get_game(Gamename)),"1.torrent"))
 
 
    
